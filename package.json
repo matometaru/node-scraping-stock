@@ -1,0 +1,19 @@
+{
+  "name": "node-scraping-stock",
+  "version": "1.0.0",
+  "main": "main.js",
+  "repository": "https://github.com/matometaru/node-scraping-stock.git",
+  "author": "Ryosuke",
+  "license": "MIT",
+  "scripts": {
+    "eslint": "eslint . --fix"
+  },
+  "devDependencies": {
+    "eslint": "^5.7.0",
+    "eslint-config-google": "^0.10.0"
+  },
+  "dependencies": {
+    "csv": "^4.0.0",
+    "iconv-lite": "^0.4.24"
+  }
+}
