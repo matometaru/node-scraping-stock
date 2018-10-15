@@ -4,9 +4,11 @@ const {siteUrl} = require('./config.js');
 const request = require('request');
 // const url = require('url');
 const fs = require('fs');
+// ストリームをコレクション
+const bl = require('bl');
 // 文字コードを変換する
 const iconv = require('iconv-lite');
-// csv
+// csv 
 const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
@@ -16,7 +18,7 @@ const generate = require('csv-generate');
 const code = process.argv[2];
 
 // csvのヘッダー
-const csvHeaders = ['code','date','open','high','low','close','volume','close_adj'];
+const csvHeaders = 'code,date,open,high,low,close,volume,close_adj';
 
 // 引数の指定がないならエラー
 if (!code) {
@@ -63,30 +65,44 @@ const getCsvFiles = (dir) => {
 const generateAllCsv = (dir) => {
   getCsvFiles(dir).then(
     (csvFiles) => {
-      const dest = fs.createWriteStream('dest.txt', 'utf8');
-      let all = [];
+      let count = 0;
+      const results = [];
+      // csvFiles = ['/Users/ryosuke/works/node-scraping-stock/download/3798/2017.csv']
       csvFiles.filter((csvFile) => {
         // csv形式のデータ
         const csvData = fs.readFileSync(csvFile);
         parse(csvData, {
           from: 3,
-          header: false,
-          relax_column_count: true,
+          relax_column_count: true, // 不整合な列数を破棄
         })
-        // transform内の関数でヘッダーを削除するか、オプションで削除できるか
         .pipe(transform((record) => {
+          // console.log(`${count}:${record[0]}`);
           record.unshift(code);
           return record;
         }))
-        // ここでヘッダーを付与できるか？
         .pipe(stringify())
-        .pipe(dest);
+        .pipe(bl((err, data) => {
+          results[count] = data;
+          count++;
+          if(count === 2) {
+            printResults(results);
+          }
+        }));
       });
     },
     (err) => {
       console.log(err);
     }
   );
+}
+
+const printResults = (results) => {
+  const dest = fs.createWriteStream('dest.txt', 'utf8');
+  dest.write(`${csvHeaders}\n`);
+  for (let i = 0; i < results.length; i++) {
+    dest.write(results[i]);
+  }
+  dest.end();
 }
 
 // download(`${siteUrl}/stock/file.php`);
