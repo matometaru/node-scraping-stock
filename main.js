@@ -34,20 +34,31 @@ if (!fs.existsSync(saveDir)) {
 
 // 指定したurlからダウンロード
 const download = (targetUrl) => {
-  const years = ['2018', '2017'];
-  const options = {
-    url: targetUrl,
-    method: 'POST',
-    form: {
-      'code': code,
-    },
-  };
+  return new Promise((resolve, reject) => {
+    const years = ['2018', '2017', '2016'];
+    let count = 0;
+    const options = {
+      url: targetUrl,
+      method: 'POST',
+      form: {
+        'code': code,
+      },
+    };
 
-  years.filter((year) => {
-    options.form.year = year;
-    request(options).pipe(iconv.decodeStream("utf-8")).pipe(fs.createWriteStream(`${saveDir}/${year}.csv`));
+    years.filter((year) => {
+      options.form.year = year;
+      request(options).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
+        const dest = fs.createWriteStream(`${saveDir}/${year}.csv`, 'utf8');
+        dest.write(data);
+        count++;
+        if( count === years.length ) {
+          resolve();
+        }
+      }));
+      // slee(2000);的な処理
+    });
   });
-};
+}
 
 // csvファイルのパスを配列で返す
 const getCsvFiles = (dir) => {
@@ -67,7 +78,6 @@ const generateAllCsv = (dir) => {
     (csvFiles) => {
       let count = 0;
       const results = [];
-      // csvFiles = ['/Users/ryosuke/works/node-scraping-stock/download/3798/2017.csv']
       csvFiles.filter((csvFile) => {
         // csv形式のデータ
         const csvData = fs.readFileSync(csvFile);
@@ -84,7 +94,7 @@ const generateAllCsv = (dir) => {
         .pipe(bl((err, data) => {
           results[count] = data;
           count++;
-          if(count === 2) {
+          if (count === csvFiles.length) {
             printResults(results);
           }
         }));
@@ -105,10 +115,9 @@ const printResults = (results) => {
   dest.end();
 }
 
-// download(`${siteUrl}/stock/file.php`);
-// console.log(saveDir);
-generateAllCsv(saveDir);
-// const a = generate({
-//   delimiter: '|',
-//   length: 20
-// }).pipe(dest);
+// downloadにスリープ処理追加後実行
+// download(`${siteUrl}/stock/file.php`).then(
+  // () => {
+    generateAllCsv(saveDir);
+  // }
+// );
