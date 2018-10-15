@@ -8,7 +8,7 @@ const fs = require('fs');
 const iconv = require('iconv-lite');
 // csv
 const transform = require('stream-transform');
-const parse = require('csv-parse/lib/sync');
+const parse = require('csv-parse');
 const stringify = require('csv-stringify');
 const generate = require('csv-generate');
 
@@ -16,7 +16,7 @@ const generate = require('csv-generate');
 const code = process.argv[2];
 
 // csvのヘッダー
-const csvHeaders = ['date','open','high','low','close','volume','close_adj'];
+const csvHeaders = ['code','date','open','high','low','close','volume','close_adj'];
 
 // 引数の指定がないならエラー
 if (!code) {
@@ -63,20 +63,25 @@ const getCsvFiles = (dir) => {
 const generateAllCsv = (dir) => {
   getCsvFiles(dir).then(
     (csvFiles) => {
-      /* 途中 */
-      let all = [];
-      all[0] = csvHeaders;
-      csvFiles.filter((csvFile) => {
-        const data = fs.readFileSync(csvFile);
-        const d = parse(data, {
-          relax_column_count: true
-        });
-        let a = d.splice(0, 2);
-        all = all.concat(d);
-      });
       const dest = fs.createWriteStream('dest.txt', 'utf8');
-      all.pipe(dest);
-      /* 途中 */
+      let all = [];
+      csvFiles.filter((csvFile) => {
+        // csv形式のデータ
+        const csvData = fs.readFileSync(csvFile);
+        parse(csvData, {
+          from: 3,
+          header: false,
+          relax_column_count: true,
+        })
+        // transform内の関数でヘッダーを削除するか、オプションで削除できるか
+        .pipe(transform((record) => {
+          record.unshift(code);
+          return record;
+        }))
+        // ここでヘッダーを付与できるか？
+        .pipe(stringify())
+        .pipe(dest);
+      });
     },
     (err) => {
       console.log(err);
