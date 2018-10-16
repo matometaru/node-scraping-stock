@@ -1,4 +1,4 @@
-const {siteUrl} = require('./config.js');
+const {TARGET_URL, DELAY} = require('./config.js');
 
 // httpモジュールより簡潔
 const request = require('request');
@@ -12,7 +12,6 @@ const iconv = require('iconv-lite');
 const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
-const generate = require('csv-generate');
 
 // 証券コード
 const code = process.argv[2];
@@ -32,35 +31,55 @@ if (!fs.existsSync(saveDir)) {
   fs.mkdirSync(saveDir);
 }
 
-// 指定したurlからダウンロード
-const download = (targetUrl) => {
+/** 
+ * 年の配列からcsvファイルのダウンロードする
+ * @param {Array}  years ダウンロードする年の配列
+ * @return {boolean} 保存完了したかどうか
+ */
+const downloadByYears = (years) => {
   return new Promise((resolve, reject) => {
-    const years = ['2018', '2017', '2016'];
-    let count = 0;
     const options = {
-      url: targetUrl,
+      url: TARGET_URL,
       method: 'POST',
       form: {
         'code': code,
       },
     };
 
-    years.filter((year) => {
-      options.form.year = year;
-      request(options).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
-        const dest = fs.createWriteStream(`${saveDir}/${year}.csv`, 'utf8');
-        dest.write(data);
-        count++;
-        if( count === years.length ) {
-          resolve();
-        }
-      }));
-      // slee(2000);的な処理
-    });
+    (async () => {
+      for (let i = 0; i < years.length; i++) {
+        options.form.year = years[i];
+        request(options).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
+          const dest = fs.createWriteStream(`${saveDir}/${years[i]}.csv`, 'utf8');
+          dest.write(data);
+          console.log(i);
+          if ( i === years.length ) {
+            resolve(true);
+          }
+        }));
+        await sleep(DELAY);
+      }
+    })();
   });
 }
 
-// csvファイルのパスを配列で返す
+/** 
+ * 非同期処理内で使うスリープ
+ * @param {number} 待機時間(ms)
+ */
+const sleep = (time) => {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      resolve();
+    }, time);
+  });
+}
+
+/** 
+ * ディレクトリにあるcsvファイルのパス配列を返す
+ * @param {string} ディレクトリの絶対パス
+ * @return {boolean} パスの配列
+ */
 const getCsvFiles = (dir) => {
   return new Promise((resolve, reject) => {
     fs.readdir(dir, (err, files) => {
@@ -73,6 +92,10 @@ const getCsvFiles = (dir) => {
   });
 }
 
+/** 
+ * 全てのcsvファイルを加工&結合し、新しいcsvを作成する
+ * @param {string} ディレクトリの絶対パス
+ */
 const generateAllCsv = (dir) => {
   getCsvFiles(dir).then(
     (csvFiles) => {
@@ -95,7 +118,7 @@ const generateAllCsv = (dir) => {
           results[count] = data;
           count++;
           if (count === csvFiles.length) {
-            printResults(results);
+            writeResults(results);
           }
         }));
       });
@@ -106,7 +129,11 @@ const generateAllCsv = (dir) => {
   );
 }
 
-const printResults = (results) => {
+/** 
+ * 文字列配列をcsvに書き出す
+ * @param {Array} 文字列配列
+ */
+const writeResults = (results) => {
   const dest = fs.createWriteStream('dest.txt', 'utf8');
   dest.write(`${csvHeaders}\n`);
   for (let i = 0; i < results.length; i++) {
@@ -116,8 +143,8 @@ const printResults = (results) => {
 }
 
 // downloadにスリープ処理追加後実行
-// download(`${siteUrl}/stock/file.php`).then(
-  // () => {
+downloadByYears(['2018', '2017']).then(
+  () => {
     generateAllCsv(saveDir);
-  // }
-// );
+  }
+);
