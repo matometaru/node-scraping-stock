@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "bl": "^2.1.2",
+    "cheerio-httpcli": "^0.7.3",
     "csv": "^4.0.0",
     "iconv-lite": "^0.4.24"
   }

@@ -2,3 +2,4 @@ config.js
 download
 dest.txt
 package-lock.json
+yarn.lock
