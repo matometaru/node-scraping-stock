@@ -1,30 +1,39 @@
 const {PARSE_URL, DOWNLOAD_URL, DELAY} = require('./config.js');
 
-// httpモジュールより簡潔
+/** 
+ * # 使用モジュール
+ * - request   : httpモジュールより簡潔
+ * - fs        : ファイルシステム
+ * - bl        : ストリームをコレクション
+ * - iconv     : 文字コード変換
+ * - client    : クライアント、html解析
+ * - transform : csvデータの置換
+ * - parse     : csvを解析
+ * - stringify : csvのストリームを文字列化
+ */
 const request = require('request');
-// const url = require('url');
 const fs = require('fs');
-// ストリームをコレクション
 const bl = require('bl');
-// 文字コードを変換する
 const iconv = require('iconv-lite');
-// csv 
+const client = require('cheerio-httpcli');
 const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
-// クライアント、html抽出
-const client = require('cheerio-httpcli');
 
 // 証券コード
 const code = process.argv[2];
 
+const isFourDigits = (v) => /^[0-9]{4}$/.test(v);
+
 // csvのヘッダー
 const csvHeaders = 'code,date,open,high,low,close,volume,close_adj';
 
-// 引数の指定がないならエラー
 if (!code) {
-  console.error('引数を指定してください');
-  return;
+  throw new Error('引数がありません!!');
+}
+
+if (!isFourDigits(code)) {
+  throw new Error('証券コード以外の値が入力されました!!');
 }
 
 // 保存先のディクレトリ作成
@@ -44,7 +53,7 @@ const parseYears = () => {
     const html = client.fetch(`${PARSE_URL}${code}/`, param, (err, $, res) => {
       $('.stock_yselect li').each(function(idx) {
         const year = $(this).text();
-        if(year.match('^[0-9]{4}$')) {
+        if(isFourDigits(year)) {
           years.push(year);
         }
       });
@@ -67,16 +76,14 @@ const downloadByYears = (years) => {
         'code': code,
       },
     };
-
+    
     (async () => {
-      for (let i = 0; i <= years.length; i++) {
+      for (let i = 0; i < years.length; i++) {
         options.form.year = years[i];
         request(options).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
           const dest = fs.createWriteStream(`${saveDir}/${years[i]}.csv`, 'utf8');
           dest.write(data);
-          console.log(i);
           if ( i === years.length - 1 ) {
-            console.log('downloadByYears 解決');
             resolve(true);
           }
         }));
@@ -140,7 +147,7 @@ const generateAllCsv = (csvFiles) => {
  * @param {Array} 文字列配列
  */
 const writeResults = (results) => {
-  const dest = fs.createWriteStream('dest.txt', 'utf8');
+  const dest = fs.createWriteStream(`${saveDir}/all.csv`, 'utf8');
   dest.write(`${csvHeaders}\n`);
   for (let i = 0; i < results.length; i++) {
     dest.write(results[i]);
