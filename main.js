@@ -2,15 +2,16 @@ const {PARSE_URL, DOWNLOAD_URL, DELAY} = require('./config.js');
 
 /** 
  * # 使用モジュール
- * - request   : httpモジュールより簡潔
- * - fs        : ファイルシステム
- * - bl        : ストリームをコレクション
- * - iconv     : 文字コード変換
- * - client    : クライアント、html解析
- * - transform : csvデータの置換
- * - parse     : csvを解析
- * - stringify : csvのストリームを文字列化
- * - path      : ファイルパスの文字列操作
+ * - request     : httpモジュールより簡潔
+ * - fs          : ファイルシステム
+ * - bl          : ストリームをコレクション
+ * - iconv       : 文字コード変換
+ * - client      : クライアント、html解析
+ * - transform   : csvデータの置換
+ * - parse       : csvを解析
+ * - stringify   : csvのストリームを文字列化
+ * - path        : ファイルパスの文字列操作
+ * - performance : 計測用
  */
 const request = require('request');
 const fs = require('fs');
@@ -21,7 +22,7 @@ const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
 const path = require('path');
-const { PerformanceObserver, performance } = require('perf_hooks');
+const { performance } = require('perf_hooks');
 
 // 証券コード
 const code = process.argv[2];
@@ -154,25 +155,11 @@ const generateAllCsv = (csvFiles) => {
  */
 const writeResults = (results) => {
   const filepath = `${saveDir}/all.csv`;
-  const startTime = performance.now(); // 開始時間
-  
-  // ここストリームの必要ある？
-  // const stream = fs.createWriteStream(filepath, 'utf8');
-  // stream.write(`${csvHeaders}\n`);
-  // for (let i = 0; i < results.length; i++) {
-  //   stream.write(results[i]);
-  // }
-  // stream.end();
-
-  // 上書き処理
-  let data = `${csvHeaders}\n`;
+   let data = `${csvHeaders}\n`;
   for (let i = 0; i < results.length; i++) {
     data += results[i];
   }
   fs.writeFileSync(filepath, data);
-
-  const endTime = performance.now(); // 終了時間
-  console.log(endTime - startTime);
 }
 
 /** 
@@ -188,8 +175,8 @@ const sleep = (time) => {
 }
 
 const main = async () => {
-  // const years = await parseYears();
-  // await downloadByYears(years);
+  const years = await parseYears();
+  await downloadByYears(years);
   const csvFiles = await getCsvFiles(saveDir);
   await generateAllCsv(csvFiles);
   console.log('完了');
