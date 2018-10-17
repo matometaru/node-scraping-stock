@@ -107,7 +107,8 @@ const getCsvFiles = (dir) => {
       const fileList = files
         .map((file) => { return `${dir}/${file}`; })
         .filter((filePath) => { 
-          return fs.statSync(filePath).isFile() && /.*\.csv$/.test(filePath) && isFourDigits(path.basename(filePath, '.csv'));
+          // 拡張子がcsvであり、ファイル名が4桁の数字である
+          return /.*\.csv$/.test(filePath) && isFourDigits(path.basename(filePath, '.csv'));
         });
       console.log(fileList);
       resolve(fileList);
