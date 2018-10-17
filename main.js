@@ -10,6 +10,7 @@ const {PARSE_URL, DOWNLOAD_URL, DELAY} = require('./config.js');
  * - transform : csvデータの置換
  * - parse     : csvを解析
  * - stringify : csvのストリームを文字列化
+ * - path      : ファイルパスの文字列操作
  */
 const request = require('request');
 const fs = require('fs');
@@ -19,6 +20,7 @@ const client = require('cheerio-httpcli');
 const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
+const path = require('path');
 
 // 証券コード
 const code = process.argv[2];
@@ -76,7 +78,7 @@ const downloadByYears = (years) => {
         'code': code,
       },
     };
-    
+
     (async () => {
       for (let i = 0; i < years.length; i++) {
         options.form.year = years[i];
@@ -104,7 +106,10 @@ const getCsvFiles = (dir) => {
       if (err) throw err;
       const fileList = files
         .map((file) => { return `${dir}/${file}`; })
-        .filter((filePath) => { return fs.statSync(filePath).isFile() && /.*\.csv$/.test(filePath) });
+        .filter((filePath) => { 
+          return fs.statSync(filePath).isFile() && /.*\.csv$/.test(filePath) && isFourDigits(path.basename(filePath, '.csv'));
+        });
+      console.log(fileList);
       resolve(fileList);
     });
   });
@@ -147,12 +152,21 @@ const generateAllCsv = (csvFiles) => {
  * @param {Array} 文字列配列
  */
 const writeResults = (results) => {
-  const dest = fs.createWriteStream(`${saveDir}/all.csv`, 'utf8');
-  dest.write(`${csvHeaders}\n`);
+  const filepath = `${saveDir}/all.csv`;
+  // ここストリームの必要ある？
+  // const stream = fs.createWriteStream(filepath, 'utf8');
+  // stream.write(`${csvHeaders}\n`);
+  // for (let i = 0; i < results.length; i++) {
+  //   stream.write(results[i]);
+  // }
+  // stream.end();
+
+  // 上書き処理
+  let data = `${csvHeaders}\n`;
   for (let i = 0; i < results.length; i++) {
-    dest.write(results[i]);
+    data += results[i];
   }
-  dest.end();
+  fs.writeFileSync(filepath, data);
 }
 
 /** 
