@@ -21,6 +21,7 @@ const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
 const path = require('path');
+const { PerformanceObserver, performance } = require('perf_hooks');
 
 // 証券コード
 const code = process.argv[2];
@@ -110,7 +111,6 @@ const getCsvFiles = (dir) => {
           // 拡張子がcsvであり、ファイル名が4桁の数字である
           return /.*\.csv$/.test(filePath) && isFourDigits(path.basename(filePath, '.csv'));
         });
-      console.log(fileList);
       resolve(fileList);
     });
   });
@@ -154,6 +154,8 @@ const generateAllCsv = (csvFiles) => {
  */
 const writeResults = (results) => {
   const filepath = `${saveDir}/all.csv`;
+  const startTime = performance.now(); // 開始時間
+  
   // ここストリームの必要ある？
   // const stream = fs.createWriteStream(filepath, 'utf8');
   // stream.write(`${csvHeaders}\n`);
@@ -168,6 +170,9 @@ const writeResults = (results) => {
     data += results[i];
   }
   fs.writeFileSync(filepath, data);
+
+  const endTime = performance.now(); // 終了時間
+  console.log(endTime - startTime);
 }
 
 /** 
@@ -183,8 +188,8 @@ const sleep = (time) => {
 }
 
 const main = async () => {
-  const years = await parseYears();
-  await downloadByYears(years);
+  // const years = await parseYears();
+  // await downloadByYears(years);
   const csvFiles = await getCsvFiles(saveDir);
   await generateAllCsv(csvFiles);
   console.log('完了');
