@@ -84,7 +84,17 @@ const downloadByYears = (years) => {
     (async () => {
       for (let i = 0; i < years.length; i++) {
         options.form.year = years[i];
-        request(options).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
+        request(options).on('response', (response) => {
+          if(response.statusCode !== 200) {
+            throw new Error(`
+              リクエストに失敗しました。
+              status: ${response.statusCode},
+              url   : ${DOWNLOAD_URL},
+              code  : ${code},
+              year  : ${year},
+            `);
+          }
+        }).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
           const dest = fs.createWriteStream(`${saveDir}/${years[i]}.csv`, 'utf8');
           dest.write(data);
           if ( i === years.length - 1 ) {
