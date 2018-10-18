@@ -80,7 +80,7 @@ class Downloader {
     }
     /**
      * 年の配列からcsvファイルのダウンロードする
-     * @param {Array}  years ダウンロードする年の配列
+     * @param {Array.<number>}  years ダウンロードする年の配列
      * @return {boolean} 保存完了したかどうか
      */
     downloadByYears(years) {

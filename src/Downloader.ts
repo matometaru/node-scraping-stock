@@ -97,10 +97,10 @@ export default class Downloader {
 
   /** 
    * 年の配列からcsvファイルのダウンロードする
-   * @param {Array}  years ダウンロードする年の配列
+   * @param {Array.<number>}  years ダウンロードする年の配列
    * @return {boolean} 保存完了したかどうか
    */
-  downloadByYears(years) {
+  downloadByYears(years: number[]) {
     return new Promise((resolve, reject) => {
       const requestOptions = {
         url: this.downloadUrl,
@@ -141,7 +141,7 @@ export default class Downloader {
    * @param {string} ディレクトリの絶対パス
    * @return {Array} パスの配列
    */
-  getCsvFiles(dir) {
+  getCsvFiles(dir: string) {
     return new Promise((resolve, reject) => {
       fs.readdir(dir, (err, files) => {
         if (err) throw err;
@@ -160,7 +160,7 @@ export default class Downloader {
    * 全てのcsvファイルを加工&結合し、新しいcsvを作成する
    * @param {Array} csvFiles
    */
-  generateAllCsv(csvFiles) {
+  generateAllCsv(csvFiles: string[]) {
     return new Promise((resolve, reject) => {
       let count = 0;
       const results = [];
@@ -192,7 +192,7 @@ export default class Downloader {
    * 文字列配列をcsvに書き出す
    * @param {Array} 文字列配列
    */
-  writeResults(results) {
+  writeResults(results: string[]) {
     const filepath = `${this.saveDir}/all.csv`;
     let data = `${csvHeaders}\n`;
     for (let i = 0; i < results.length; i++) {
