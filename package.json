@@ -6,6 +6,7 @@
   "author": "Ryosuke",
   "license": "MIT",
   "scripts": {
+    "build": "tsc",
     "eslint": "eslint . --fix"
   },
   "devDependencies": {
