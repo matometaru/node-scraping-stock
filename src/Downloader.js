@@ -21,9 +21,9 @@ const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
 const path = require('path');
-const useful_1 = require("../utils/useful");
+const useful_1 = require("./utils/useful");
 class Downloader {
-    constructor(options = {}) {
+    constructor(options) {
         this.boot();
         this.options = useful_1.merge(Downloader.defaults, options);
     }

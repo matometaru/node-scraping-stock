@@ -5,7 +5,7 @@ const {performance} = require('perf_hooks');
  * @param {number} 待機時間(ms)
  * @return {Promise}
  */
-const sleep = (time) => {
+const sleep = (time: number) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       resolve();

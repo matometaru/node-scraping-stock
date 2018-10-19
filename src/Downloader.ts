@@ -1,4 +1,4 @@
-/** 
+/**
  * # 使用モジュール
  * - request     : httpモジュールより簡潔
  * - fs          : ファイルシステム
@@ -20,73 +20,85 @@ const parse = require('csv-parse');
 const stringify = require('csv-stringify');
 const path = require('path');
 
-import { sleep, merge, measure } from '../utils/useful';
+import { sleep, merge } from './utils/useful';
+
+interface Context {
+  parseUrl: string;
+  downloadUrl: string;
+  delay: number;
+}
+
+const csvHeaders = 'code,date,open,high,low,close,volume,close_adj';
+const isFourDigits = (v) => /^[0-9]{4}$/.test(v);
 
 export default class Downloader {
 
-  static defaults = {
+  static defaults: Context = {
     parseUrl: '',
     downloadUrl: '',
     delay: 2000,
-    code: 1301,
   };
 
-  static csvHeaders = 'code,date,open,high,low,close,volume,close_adj';
-  static isFourDigits = (v) => /^[0-9]{4}$/.test(v);
+  private code: number = 1301;
+  private saveDir: string = '';
+  private options: Context;
 
-  constructor(options = {}) {
-    this.boot();
+  constructor(code: number, options: Context) {
+    this.code = code;
     this.options = merge(Downloader.defaults, options);
+    this.boot();
   }
 
-  /** 
+  /**
    * 引数チェック、ファイル作成などの初期化処理
    */
   boot() {
-    if (!code) {
+    if (!this.code) {
       throw new Error('引数がありません!!');
     }
-    if (!isFourDigits(code)) {
+    if (!isFourDigits(this.code)) {
       throw new Error('証券コード以外の値が入力されました!!');
     }
 
     // 保存先のディクレトリ作成
-    this.saveDir = `${__dirname}/download/${code}`;
+    this.saveDir = `${__dirname}/download/${this.code}`;
     if (!fs.existsSync(this.saveDir)) {
       fs.mkdirSync(this.saveDir);
     }
   }
 
-  /** 
+  /**
    * メイン実行
    */
   run() {
-    const years = await this.parseYears();
-    await this.downloadByYears(years);
-    const csvFiles = await this.getCsvFiles(this.saveDir);
-    await this.generateAllCsv(csvFiles);
+    (async () => {
+      const years: number[] = await this.parseYears();
+      await this.downloadByYears(years);
+      const csvFiles: string[] = await this.getCsvFiles(this.saveDir);
+      await this.generateAllCsv(csvFiles);
+    });
   }
 
-  /** 
+  /**
    * ゲッター
    * @return {Object}
    */
-  getOption() {
+  getOption(): Context {
     return this.options;
   }
 
-  /** 
+  /**
    * htmlから年をスクレイピングして配列で返す
-   * @return {Array} 年の配列
+   * @return {Promise} 年の配列
    */
-  parseYears() {
+  parseYears(): Promise<number[]> {
     return new Promise((resolve, reject) => {
       const param = {};
       const years = [];
       const html = client.fetch(`${this.options.parseUrl}${this.options.code}/`, param, (err, $, res) => {
-        $('.stock_yselect li').each(function(idx) {
+        $('.stock_yselect li').each(function (idx) {
           const year = $(this).text();
-          if(isFourDigits(year)) {
+          if (isFourDigits(year)) {
             years.push(year);
           }
         });
@@ -95,12 +107,12 @@ export default class Downloader {
     });
   }
 
-  /** 
+  /**
    * 年の配列からcsvファイルのダウンロードする
    * @param {Array.<number>}  years ダウンロードする年の配列
-   * @return {boolean} 保存完了したかどうか
+   * @return {Promise} 保存完了したかどうか
    */
-  downloadByYears(years: number[]) {
+  downloadByYears(years: number[]): Promise<{}> {
     return new Promise((resolve, reject) => {
       const requestOptions = {
         url: this.downloadUrl,
@@ -114,7 +126,7 @@ export default class Downloader {
         for (let i = 0; i < years.length; i++) {
           requestOptions.form.year = years[i];
           request(requestOptions).on('response', (response) => {
-            if(response.statusCode !== 200) {
+            if (response.statusCode !== 200) {
               throw new Error(`
                 リクエストに失敗しました。
                 status: ${response.statusCode},
@@ -126,7 +138,7 @@ export default class Downloader {
           }).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
             const dest = fs.createWriteStream(`${this.saveDir}/${years[i]}.csv`, 'utf8');
             dest.write(data);
-            if ( i === years.length - 1 ) {
+            if (i === years.length - 1) {
               resolve(true);
             }
           }));
@@ -136,18 +148,18 @@ export default class Downloader {
     });
   }
 
-  /** 
+  /**
    * ディレクトリにあるcsvファイルのパス配列を返す
    * @param {string} ディレクトリの絶対パス
-   * @return {Array} パスの配列
+   * @return {Promise} パスの配列
    */
-  getCsvFiles(dir: string) {
+  getCsvFiles(dir: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
       fs.readdir(dir, (err, files) => {
         if (err) throw err;
         const fileList = files
           .map((file) => { return `${dir}/${file}`; })
-          .filter((filePath) => { 
+          .filter((filePath) => {
             // 拡張子がcsvであり、ファイル名が4桁の数字である
             return /.*\.csv$/.test(filePath) && isFourDigits(path.basename(filePath, '.csv'));
           });
@@ -156,11 +168,11 @@ export default class Downloader {
     });
   }
 
-  /** 
+  /**
    * 全てのcsvファイルを加工&結合し、新しいcsvを作成する
-   * @param {Array} csvFiles
+   * @param {Array.<string>} csvFiles
    */
-  generateAllCsv(csvFiles: string[]) {
+  generateAllCsv(csvFiles: string[]): Promise<{}> {
     return new Promise((resolve, reject) => {
       let count = 0;
       const results = [];
@@ -171,24 +183,24 @@ export default class Downloader {
           from: 3,
           relax_column_count: true, // 不整合な列数を破棄
         })
-        .pipe(transform((record) => {
-          record.unshift(this.options.code);
-          return record;
-        }))
-        .pipe(stringify())
-        .pipe(bl((err, data) => {
-          results[count] = data;
-          count++;
-          if (count === csvFiles.length) {
-            this.writeResults(results);
-            resolve();
-          }
-        }));
+          .pipe(transform((record) => {
+            record.unshift(this.options.code);
+            return record;
+          }))
+          .pipe(stringify())
+          .pipe(bl((err, data) => {
+            results[count] = data;
+            count++;
+            if (count === csvFiles.length) {
+              this.writeResults(results);
+              resolve();
+            }
+          }));
       });
     });
   }
 
-  /** 
+  /**
    * 文字列配列をcsvに書き出す
    * @param {Array} 文字列配列
    */
