@@ -20,7 +20,7 @@ const parse = require('csv-parse');
 const stringify = require('csv-stringify');
 const path = require('path');
 
-import { sleep, merge } from './utils/useful';
+import { sleep } from './utils/useful';
 
 interface Context {
   parseUrl: string;
@@ -39,13 +39,13 @@ export default class Downloader {
     delay: 2000,
   };
 
-  private code: number = 1301;
+  private code: number;
   private saveDir: string = '';
   private options: Context;
 
   constructor(code: number, options: Context) {
     this.code = code;
-    this.options = merge(Downloader.defaults, options);
+    this.options = Object.assign(Downloader.defaults, options);
     this.boot();
   }
 
@@ -95,7 +95,7 @@ export default class Downloader {
     return new Promise((resolve, reject) => {
       const param = {};
       const years = [];
-      const html = client.fetch(`${this.options.parseUrl}${this.options.code}/`, param, (err, $, res) => {
+      const html = client.fetch(`${this.options.parseUrl}${this.code}/`, param, (err, $, res) => {
         $('.stock_yselect li').each(function (idx) {
           const year = $(this).text();
           if (isFourDigits(year)) {
@@ -115,10 +115,11 @@ export default class Downloader {
   downloadByYears(years: number[]): Promise<{}> {
     return new Promise((resolve, reject) => {
       const requestOptions = {
-        url: this.downloadUrl,
+        url: this.options.downloadUrl,
         method: 'POST',
         form: {
-          'code': this.options.code,
+          'code': this.code,
+          'year': 0,
         },
       };
 
@@ -130,9 +131,9 @@ export default class Downloader {
               throw new Error(`
                 リクエストに失敗しました。
                 status: ${response.statusCode},
-                url   : ${this.downloadUrl},
-                code  : ${this.options.code},
-                year  : ${year},
+                url   : ${this.options.downloadUrl},
+                code  : ${this.code},
+                year  : ${years[i]},
               `);
             }
           }).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
@@ -184,7 +185,7 @@ export default class Downloader {
           relax_column_count: true, // 不整合な列数を破棄
         })
           .pipe(transform((record) => {
-            record.unshift(this.options.code);
+            record.unshift(this.code);
             return record;
           }))
           .pipe(stringify())
