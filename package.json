@@ -8,8 +8,8 @@
   "scripts": {
     "build": "npm-run-all build:bundle build:minify build:decls",
     "build:bundle": "rollup -c",
-    "build:minify": "uglifyjs -c -m --comments -o sweet-scroll.min.js -- sweet-scroll.js",
-    "build:decls": "dts-bundle --baseDir ./ --name sweet-scroll --main decls/index.d.ts",
+    "build:minify": "uglifyjs -c -m --comments -o index.min.js -- index.js",
+    "build:decls": "dts-bundle --baseDir ./ --name index --main decls/index.d.ts",
     "build:watch": "npm run build:bundle -- --watch",
     "eslint": "eslint . --fix",
     "clean": "rm -rf dist/"

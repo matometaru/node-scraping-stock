@@ -81,6 +81,14 @@ export default class Downloader {
 
   /**
    * ゲッター
+   * @return {string}
+   */
+  getSaveDir() {
+    return this.saveDir;
+  }
+
+  /**
+   * ゲッター
    * @return {Object}
    */
   getOption(): Context {
@@ -96,7 +104,7 @@ export default class Downloader {
       const param = {};
       const years: string[] = [];
       client.fetch(`${this.options.parseUrl}${this.code}/`, param, (err, $, res) => {
-        $('.stock_yselect li').each(function () {
+        $('.stock_yselect li').each(function (this: Cheerio) {
           const year: string = $(this).text();
           if (isFourDigits(year)) {
             years.push(year);
@@ -129,17 +137,20 @@ export default class Downloader {
       (async () => {
         for (let i = 0; i < years.length; i++) {
           requestOptions.form.year = years[i];
-          request(requestOptions).on('response', (response) => {
-            if (response.statusCode !== 200) {
+          request(requestOptions).on('response', (res: any) => {
+            if (res.statusCode !== 200) {
               throw new Error(`
                 リクエストに失敗しました。
-                status: ${response.statusCode},
+                status: ${res.statusCode},
                 url   : ${this.options.downloadUrl},
                 code  : ${this.code},
                 year  : ${years[i]},
               `);
             }
-          }).pipe(iconv.decodeStream("utf-8")).pipe(bl((err, data) => {
+          }).pipe(iconv.decodeStream("utf-8")).pipe(bl((err: Error, data: string) => {
+            if (err) {
+              reject(err);
+            }
             const dest = fs.createWriteStream(`${this.saveDir}/${years[i]}.csv`, 'utf8');
             dest.write(data);
             if (i === years.length - 1) {
@@ -159,11 +170,11 @@ export default class Downloader {
    */
   getCsvFiles(dir: string): Promise<string[]> {
     return new Promise((resolve, reject) => {
-      fs.readdir(dir, (err, files) => {
-        if (err) throw err;
+      fs.readdir(dir, (err: Error, files: string[]) => {
+        if (err) reject(err);
         const fileList = files
-          .map((file) => { return `${dir}/${file}`; })
-          .filter((filePath) => {
+          .map((file: string) => { return `${dir}/${file}`; })
+          .filter((filePath: string) => {
             // 拡張子がcsvであり、ファイル名が4桁の数字である
             return /.*\.csv$/.test(filePath) && isFourDigits(path.basename(filePath, '.csv'));
           });
@@ -187,12 +198,13 @@ export default class Downloader {
           from: 3,
           relax_column_count: true, // 不整合な列数を破棄
         })
-          .pipe(transform((record) => {
+          .pipe(transform((record: string[]) => {
             record.unshift(this.code);
             return record;
           }))
           .pipe(stringify())
-          .pipe(bl((err, data) => {
+          .pipe(bl((err: Error, data: string) => {
+            if (err) reject(err);
             results[count] = data;
             count++;
             if (count === csvFiles.length) {

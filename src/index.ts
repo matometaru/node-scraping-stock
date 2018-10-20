@@ -1,8 +1,6 @@
-import { PARSE_URL, DOWNLOAD_URL, DELAY } from './config';
+import { PARSE_URL, DOWNLOAD_URL, DELAY } from './config/config';
 import Downloader from './Downloader';
 const code: string = process.argv[2];
-
-(<any>window).MyNamespace
 
 // Downloader
 const dlOptions = {
@@ -11,8 +9,7 @@ const dlOptions = {
   delay: DELAY,
 };
 const downloader = new Downloader(code, dlOptions);
-const options = downloader.getOption();
-console.log(options);
+downloader.run();
 
 // Uploader
 // const upOptions = {

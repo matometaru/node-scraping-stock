@@ -8,7 +8,11 @@ const { performance } = require('perf_hooks');
 export const sleep = (time: number) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
-      resolve();
+      try {
+        resolve();
+      } catch (e) {
+        reject(e);
+      }
     }, time);
   });
 };
