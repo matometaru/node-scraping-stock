@@ -3,3 +3,4 @@ download
 dest.txt
 package-lock.json
 yarn.lock
+.rpt2_cache

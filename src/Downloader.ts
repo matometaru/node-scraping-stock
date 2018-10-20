@@ -14,7 +14,7 @@ const request = require('request');
 const fs = require('fs');
 const bl = require('bl');
 const iconv = require('iconv-lite');
-const client = require('cheerio-httpcli');
+import * as client from 'cheerio-httpcli';
 const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
@@ -29,7 +29,7 @@ interface Context {
 }
 
 const csvHeaders = 'code,date,open,high,low,close,volume,close_adj';
-const isFourDigits = (v) => /^[0-9]{4}$/.test(v);
+const isFourDigits = (v: string) => /^[0-9]{4}$/.test(v);
 
 export default class Downloader {
 
@@ -39,11 +39,11 @@ export default class Downloader {
     delay: 2000,
   };
 
-  private code: number;
+  private code: string;
   private saveDir: string = '';
   private options: Context;
 
-  constructor(code: number, options: Context) {
+  constructor(code: string, options: Context) {
     this.code = code;
     this.options = Object.assign(Downloader.defaults, options);
     this.boot();
@@ -72,7 +72,7 @@ export default class Downloader {
    */
   run() {
     (async () => {
-      const years: number[] = await this.parseYears();
+      const years: string[] = await this.parseYears();
       await this.downloadByYears(years);
       const csvFiles: string[] = await this.getCsvFiles(this.saveDir);
       await this.generateAllCsv(csvFiles);
@@ -91,17 +91,20 @@ export default class Downloader {
    * htmlから年をスクレイピングして配列で返す
    * @return {Promise} 年の配列
    */
-  parseYears(): Promise<number[]> {
+  parseYears(): Promise<string[]> {
     return new Promise((resolve, reject) => {
       const param = {};
-      const years = [];
-      const html = client.fetch(`${this.options.parseUrl}${this.code}/`, param, (err, $, res) => {
-        $('.stock_yselect li').each(function (idx) {
-          const year = $(this).text();
+      const years: string[] = [];
+      client.fetch(`${this.options.parseUrl}${this.code}/`, param, (err, $, res) => {
+        $('.stock_yselect li').each(function () {
+          const year: string = $(this).text();
           if (isFourDigits(year)) {
             years.push(year);
           }
         });
+        if (res.statusCode !== 200) {
+          reject(`parseYears: ${res.statusCode} ${err}`);
+        }
         resolve(years);
       });
     });
@@ -112,14 +115,14 @@ export default class Downloader {
    * @param {Array.<number>}  years ダウンロードする年の配列
    * @return {Promise} 保存完了したかどうか
    */
-  downloadByYears(years: number[]): Promise<{}> {
+  downloadByYears(years: string[]): Promise<{}> {
     return new Promise((resolve, reject) => {
       const requestOptions = {
         url: this.options.downloadUrl,
         method: 'POST',
         form: {
           'code': this.code,
-          'year': 0,
+          'year': '',
         },
       };
 
@@ -176,7 +179,7 @@ export default class Downloader {
   generateAllCsv(csvFiles: string[]): Promise<{}> {
     return new Promise((resolve, reject) => {
       let count = 0;
-      const results = [];
+      const results: string[] = [];
       csvFiles.filter((csvFile) => {
         // csv形式のデータ
         const csvData = fs.readFileSync(csvFile);

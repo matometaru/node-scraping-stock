@@ -5,12 +5,12 @@
       "./src"
     ],
     "lib": [
-      "node",
       "dom",
       "es2017"
     ],
     "types": [
-      "jest"
+      "jest",
+      "node"
     ],
     "noImplicitAny": true,
     "strictNullChecks": true,

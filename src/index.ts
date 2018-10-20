@@ -1,6 +1,6 @@
-const { PARSE_URL, DOWNLOAD_URL, DELAY } = require('./config.js');
-const Downloader = require('./Downloader');
-const code = process.argv[2];
+import { PARSE_URL, DOWNLOAD_URL, DELAY } from './config';
+import Downloader from './Downloader';
+const code: string = process.argv[2];
 
 (<any>window).MyNamespace
 
