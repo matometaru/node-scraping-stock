@@ -1,16 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "module": "commonjs",
     "rootDirs": [
       "./src"
     ],
     "lib": [
       "dom",
       "es2017"
-    ],
-    "types": [
-      "jest",
-      "node"
     ],
     "noImplicitAny": true,
     "strictNullChecks": true,

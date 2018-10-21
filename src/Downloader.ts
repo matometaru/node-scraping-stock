@@ -2,23 +2,24 @@
  * # 使用モジュール
  * - request     : httpモジュールより簡潔
  * - fs          : ファイルシステム
- * - bl          : ストリームをコレクション
  * - iconv       : 文字コード変換
- * - client      : クライアント、html解析
+ * - cheerio     : html解析
+ * - path        : ファイルパスの文字列操作
+ * - bl          : ストリームをコレクション
  * - transform   : csvデータの置換
  * - parse       : csvを解析
  * - stringify   : csvのストリームを文字列化
- * - path        : ファイルパスの文字列操作
  */
-const request = require('request');
-const fs = require('fs');
+import * as request from 'request';
+import * as fs from 'fs';
+import * as iconv from 'iconv-lite';
+import * as cheerio from 'cheerio';
+import * as path from 'path';
+// 型定義がないモジュール
 const bl = require('bl');
-const iconv = require('iconv-lite');
-import * as client from 'cheerio-httpcli';
 const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
-const path = require('path');
 
 import { sleep } from './utils/useful';
 
@@ -61,7 +62,7 @@ export default class Downloader {
     }
 
     // 保存先のディクレトリ作成
-    this.saveDir = `${__dirname}/download/${this.code}`;
+    this.saveDir = `${__dirname}/../download/${this.code}`;
     if (!fs.existsSync(this.saveDir)) {
       fs.mkdirSync(this.saveDir);
     }
@@ -71,12 +72,15 @@ export default class Downloader {
    * メイン実行
    */
   run() {
+    console.log("run");
     (async () => {
+      console.log("開始");
       const years: string[] = await this.parseYears();
       await this.downloadByYears(years);
       const csvFiles: string[] = await this.getCsvFiles(this.saveDir);
       await this.generateAllCsv(csvFiles);
-    });
+      console.log("終了");
+    })();
   }
 
   /**
@@ -101,9 +105,9 @@ export default class Downloader {
    */
   parseYears(): Promise<string[]> {
     return new Promise((resolve, reject) => {
-      const param = {};
       const years: string[] = [];
-      client.fetch(`${this.options.parseUrl}${this.code}/`, param, (err, $, res) => {
+      request({ uri: `${this.options.parseUrl}${this.code}/` }, (err, res, body) => {
+        const $ = cheerio.load(body);
         $('.stock_yselect li').each(function (this: Cheerio) {
           const year: string = $(this).text();
           if (isFourDigits(year)) {

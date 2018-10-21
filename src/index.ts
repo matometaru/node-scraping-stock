@@ -9,6 +9,7 @@ const dlOptions = {
   delay: DELAY,
 };
 const downloader = new Downloader(code, dlOptions);
+// console.log(downloader.getOption());
 downloader.run();
 
 // Uploader
