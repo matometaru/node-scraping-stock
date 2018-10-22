@@ -21,7 +21,7 @@ const transform = require('stream-transform');
 const parse = require('csv-parse');
 const stringify = require('csv-stringify');
 
-import { sleep } from './utils/useful';
+import { sleep } from '../utils/useful';
 
 interface Context {
   parseUrl: string;

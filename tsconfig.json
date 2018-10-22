@@ -8,6 +8,7 @@
       "dom",
       "es2017"
     ],
+    "jsx": "react",
     "noImplicitAny": true,
     "strictNullChecks": true,
     "suppressImplicitAnyIndexErrors": true,
