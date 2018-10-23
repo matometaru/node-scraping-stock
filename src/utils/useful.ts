@@ -27,3 +27,11 @@ export const measure = (callback: () => void) => {
   const endTime = performance.now(); // 終了時間
   console.log(endTime - startTime);
 };
+
+
+/**
+ * 証券コードかどうか
+ * @param {string} 証券コード
+ * @return {boolean}
+ */
+export const isStockCode = (v: string) => /^[0-9]{4}$/.test(v);

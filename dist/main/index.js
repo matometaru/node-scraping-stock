@@ -86,17 +86,6 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "./node_modules/electron/index.js":
-/*!****************************************!*\
-  !*** ./node_modules/electron/index.js ***!
-  \****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-eval("var fs = __webpack_require__(/*! fs */ \"fs\")\nvar path = __webpack_require__(/*! path */ \"path\")\n\nvar pathFile = path.join(__dirname, 'path.txt')\n\nfunction getElectronPath () {\n  if (fs.existsSync(pathFile)) {\n    var executablePath = fs.readFileSync(pathFile, 'utf-8')\n    if (process.env.ELECTRON_OVERRIDE_DIST_PATH) {\n      return path.join(process.env.ELECTRON_OVERRIDE_DIST_PATH, executablePath)\n    }\n    return path.join(__dirname, 'dist', executablePath)\n  } else {\n    throw new Error('Electron failed to install correctly, please delete node_modules/electron and try installing again')\n  }\n}\n\nmodule.exports = getElectronPath()\n\n\n//# sourceURL=webpack:///./node_modules/electron/index.js?");
-
-/***/ }),
-
 /***/ "./src/main/createWindow.ts":
 /*!**********************************!*\
   !*** ./src/main/createWindow.ts ***!
@@ -105,7 +94,7 @@ eval("var fs = __webpack_require__(/*! fs */ \"fs\")\nvar path = __webpack_requi
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar electron_1 = __webpack_require__(/*! electron */ \"./node_modules/electron/index.js\");\nvar win;\nfunction createWindow() {\n    win = new electron_1.BrowserWindow();\n    win.loadURL(\"file://\" + __dirname + \"/../../index.html\");\n    win.on(\"close\", function () {\n        win = null;\n    });\n}\nexports[\"default\"] = createWindow;\n\n\n//# sourceURL=webpack:///./src/main/createWindow.ts?");
+eval("\nexports.__esModule = true;\nvar electron_1 = __webpack_require__(/*! electron */ \"electron\");\nvar win;\nfunction createWindow() {\n    win = new electron_1.BrowserWindow();\n    win.loadURL(\"file://\" + __dirname + \"/../../index.html\");\n    win.on(\"close\", function () {\n        win = null;\n    });\n}\nexports[\"default\"] = createWindow;\n\n\n//# sourceURL=webpack:///./src/main/createWindow.ts?");
 
 /***/ }),
 
@@ -117,29 +106,18 @@ eval("\nexports.__esModule = true;\nvar electron_1 = __webpack_require__(/*! ele
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-eval("\nexports.__esModule = true;\nvar electron_1 = __webpack_require__(/*! electron */ \"./node_modules/electron/index.js\");\nvar createWindow_1 = __webpack_require__(/*! ./createWindow */ \"./src/main/createWindow.ts\");\n// Electronが起動し、初期化処理が完了したとき\nelectron_1.app.on(\"ready\", function () {\n});\n// すべてのウィンドウが閉じられたとき\nelectron_1.app.on(\"window-all-closed\", function () {\n});\n// macOS限定のアクティブ処理\nelectron_1.app.on(\"activate\", function (_e, hasVisibleWindows) {\n    if (!hasVisibleWindows) {\n        createWindow_1[\"default\"]();\n    }\n});\n\n\n//# sourceURL=webpack:///./src/main/index.ts?");
+eval("\nexports.__esModule = true;\nvar electron_1 = __webpack_require__(/*! electron */ \"electron\");\nvar createWindow_1 = __webpack_require__(/*! ./createWindow */ \"./src/main/createWindow.ts\");\n// Electronが起動し、初期化処理が完了したとき\nelectron_1.app.on(\"ready\", function () {\n});\n// すべてのウィンドウが閉じられたとき\nelectron_1.app.on(\"window-all-closed\", function () {\n});\n// macOS限定のアクティブ処理\nelectron_1.app.on(\"activate\", function (_e, hasVisibleWindows) {\n    if (!hasVisibleWindows) {\n        createWindow_1[\"default\"]();\n    }\n});\n\n\n//# sourceURL=webpack:///./src/main/index.ts?");
 
 /***/ }),
 
-/***/ "fs":
-/*!*********************!*\
-  !*** external "fs" ***!
-  \*********************/
+/***/ "electron":
+/*!***************************!*\
+  !*** external "electron" ***!
+  \***************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-eval("module.exports = require(\"fs\");\n\n//# sourceURL=webpack:///external_%22fs%22?");
-
-/***/ }),
-
-/***/ "path":
-/*!***********************!*\
-  !*** external "path" ***!
-  \***********************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-eval("module.exports = require(\"path\");\n\n//# sourceURL=webpack:///external_%22path%22?");
+eval("module.exports = require(\"electron\");\n\n//# sourceURL=webpack:///external_%22electron%22?");
 
 /***/ })
 

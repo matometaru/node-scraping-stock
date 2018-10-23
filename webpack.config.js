@@ -1,5 +1,5 @@
 module.exports = {
-  target: 'node',
+  target: "electron-main",
   node: {
     __dirname: false,
     __filename: false,

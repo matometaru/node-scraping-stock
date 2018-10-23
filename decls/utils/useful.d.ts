@@ -9,3 +9,9 @@ export declare const sleep: (time: number) => Promise<{}>;
  * @param {Function} 計測したい関数
  */
 export declare const measure: (callback: () => void) => void;
+/**
+ * 証券コードかどうか
+ * @param {string} 証券コード
+ * @return {boolean}
+ */
+export declare const isStockCode: (v: string) => boolean;
