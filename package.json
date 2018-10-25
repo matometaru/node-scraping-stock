@@ -6,13 +6,10 @@
   "author": "Ryosuke",
   "license": "MIT",
   "scripts": {
+    "start": "NODE_ENV=development webpack-dev-server --config=webpack.dev.config.js --open",
     "build": "webpack",
     "watch": "webpack -w",
     "electron": "electron .",
-    "build:bundle": "rollup -c",
-    "build:minify": "uglifyjs -c -m --comments -o index.min.js -- index.js",
-    "build:decls": "dts-bundle --baseDir ./ --name index --main decls/index.d.ts",
-    "build:watch": "npm run build:bundle -- --watch",
     "eslint": "eslint . --fix",
     "clean": "rm -rf dist/"
   },
@@ -38,7 +35,8 @@
     "typescript": "^2.7.2",
     "uglify-es": "^3.3.9",
     "webpack": "^4.21.0",
-    "webpack-cli": "^3.1.2"
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.10"
   },
   "dependencies": {
     "@types/history": "^2.0.45",
@@ -51,10 +49,13 @@
     "csv": "^4.0.0",
     "electron": "^3.0.5",
     "iconv-lite": "^0.4.24",
+    "install": "^0.12.2",
     "lodash": "^4.17.11",
     "photon": "connors/photon",
     "react": "^16.5.2",
+    "react-desktop": "^0.3.7",
     "react-dom": "^16.5.2",
+    "react-photonkit": "^0.4.1",
     "react-router": "3.2.0"
   }
 }

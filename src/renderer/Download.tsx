@@ -1,5 +1,6 @@
 import * as React from "react";
 import Errors from "./Errors";
+import List from "./components/List";
 import { isStockCode } from "../utils/useful";
 
 const SIGNUP_FORM_STYLE = {
@@ -71,22 +72,25 @@ export default class Download extends React.Component<any, State> {
 
   render() {
     return (
-      <form style={SIGNUP_FORM_STYLE} onSubmit={this.handleOnSearch}>
-        <Errors errorMessages={this.state.errors} />
-        <div className="form-group">
-          <label>Email address*</label>
-          <input
-            type="input"
-            className="form-control"
-            placeholder="3798"
-            value={this.state.code}
-            onChange={this.handleOnChangeCode}
-          />
-        </div>
-        <div className="form-group">
-          <button className="btn btn-large btn-primary">Create new account</button>
-        </div>
-      </form>
+      <div>
+        <form style={SIGNUP_FORM_STYLE} onSubmit={this.handleOnSearch}>
+          <Errors errorMessages={this.state.errors} />
+          <div className="form-group">
+            <label>証券コード</label>
+            <input
+              type="input"
+              className="form-control"
+              placeholder="3798"
+              value={this.state.code}
+              onChange={this.handleOnChangeCode}
+            />
+          </div>
+          <div className="form-group">
+            <button className="btn btn-large btn-primary">検索</button>
+          </div>
+        </form>
+        <List></List>
+      </div>
     );
   }
 }
